@@ -10,10 +10,15 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: [
+      "http://localhost:5173",
+      "https://mern-url-shortener-0yyb.onrender.com",
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   })
 );
+
 app.use(express.json());
 
 app.use("/", urlRoutes);
