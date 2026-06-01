@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import QRCode from "qrcode";
+import { toDataURL } from "qrcode";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -104,38 +104,40 @@ function App() {
       // 1. Draw Mesh Connection Lines (Only on the front half: Z > 0)
       ctx.lineWidth = 0.65;
       
-      projected.forEach((p1) => {
-        if (p1.z <= 0) return; // Hide back-facing lines
+      for (let i = 0; i < numLat; i++) {
+        for (let j = 0; j < numLong; j++) {
+          const idx = i * numLong + j;
+          const p1 = projected[idx];
+          if (!p1 || p1.z <= 0) continue; // Hide back-facing lines
 
-        // Set line opacity based on depth
-        const opacity = p1.z * 0.12;
-        ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
+          // Set line opacity based on depth
+          const opacity = p1.z * 0.12;
+          ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
 
-        // Connect to next longitude neighbor
-        const nextLonIndex = (p1.lonIndex + 1) % numLong;
-        const pLonNeighbor = projected.find(
-          (o) => o.latIndex === p1.latIndex && o.lonIndex === nextLonIndex
-        );
-        if (pLonNeighbor && pLonNeighbor.z > 0) {
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(pLonNeighbor.x, pLonNeighbor.y);
-          ctx.stroke();
-        }
-
-        // Connect to next latitude neighbor
-        if (p1.latIndex < numLat - 1) {
-          const pLatNeighbor = projected.find(
-            (o) => o.latIndex === p1.latIndex + 1 && o.lonIndex === p1.lonIndex
-          );
-          if (pLatNeighbor && pLatNeighbor.z > 0) {
+          // Connect to next longitude neighbor (O(1) lookups)
+          const nextLonIndex = (j + 1) % numLong;
+          const idxLon = i * numLong + nextLonIndex;
+          const pLonNeighbor = projected[idxLon];
+          if (pLonNeighbor && pLonNeighbor.z > 0) {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(pLatNeighbor.x, pLatNeighbor.y);
+            ctx.lineTo(pLonNeighbor.x, pLonNeighbor.y);
             ctx.stroke();
           }
+
+          // Connect to next latitude neighbor (O(1) lookups)
+          if (i < numLat - 1) {
+            const idxLat = (i + 1) * numLong + j;
+            const pLatNeighbor = projected[idxLat];
+            if (pLatNeighbor && pLatNeighbor.z > 0) {
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(pLatNeighbor.x, pLatNeighbor.y);
+              ctx.stroke();
+            }
+          }
         }
-      });
+      }
 
       // 2. Draw Wireframe Particle Node Points
       projected.forEach((p) => {
@@ -211,7 +213,7 @@ function App() {
       setCopied(false);
 
       // Generate premium dark-themed QR code
-      const qr = await QRCode.toDataURL(generatedShortUrl, {
+      const qr = await toDataURL(generatedShortUrl, {
         width: 350,
         margin: 2,
         color: {
