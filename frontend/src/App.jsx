@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { toDataURL } from "qrcode";
 
@@ -26,146 +26,6 @@ function App() {
   // Analytics modal state
   const [activeStats, setActiveStats] = useState(null);
   const [fetchingStatsId, setFetchingStatsId] = useState(null);
-
-  // Background 3D Rotating Globe Ref
-  const canvasRef = useRef(null);
-
-  // 3D Canvas Globe rendering cycle
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    let animationFrameId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    // Dynamic resizing
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    // Generate sphere vertices (3D Points)
-    const points = [];
-    const numLat = 12;  // Latitudes (reduced from 15 for lightweight rendering)
-    const numLong = 18; // Longitudes (reduced from 22 for lightweight rendering)
-    
-    for (let i = 0; i < numLat; i++) {
-      const lat = (i / (numLat - 1)) * Math.PI - Math.PI / 2;
-      for (let j = 0; j < numLong; j++) {
-        const lon = (j / numLong) * 2 * Math.PI;
-        // Sphere coordinate mapping
-        const x = Math.cos(lat) * Math.sin(lon);
-        const y = Math.sin(lat);
-        const z = Math.cos(lat) * Math.cos(lon);
-        points.push({ x, y, z, latIndex: i, lonIndex: j });
-      }
-    }
-
-    let angleY = 0;
-    let angleX = 0.25; // Globe tilt angle
-
-    // Render loop
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      // Sphere sizing based on viewport
-      const sphereRadius = Math.min(width, height) * 0.32;
-      const centerX = width * 0.5;
-      const centerY = height * 0.5;
-
-      angleY += 0.0022; // Horizontal rotation velocity
-
-      // Project and compute all 2D screen positions
-      const projected = points.map((p) => {
-        // Rotate around Y-axis
-        const x1 = p.x * Math.cos(angleY) - p.z * Math.sin(angleY);
-        const z1 = p.x * Math.sin(angleY) + p.z * Math.cos(angleY);
-
-        // Rotate around X-axis (tilt)
-        const y2 = p.y * Math.cos(angleX) - z1 * Math.sin(angleX);
-        const z2 = p.y * Math.sin(angleX) + z1 * Math.cos(angleX);
-
-        // Project onto 2D screen
-        const screenX = centerX + x1 * sphereRadius;
-        const screenY = centerY + y2 * sphereRadius;
-
-        return {
-          x: screenX,
-          y: screenY,
-          z: z2, // Depth factor
-          latIndex: p.latIndex,
-          lonIndex: p.lonIndex,
-        };
-      });
-
-      // 1. Draw Mesh Connection Lines (Highly optimized single-stroke path)
-      ctx.lineWidth = 0.5;
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
-      ctx.beginPath();
-      
-      for (let i = 0; i < numLat; i++) {
-        for (let j = 0; j < numLong; j++) {
-          const idx = i * numLong + j;
-          const p1 = projected[idx];
-          if (!p1 || p1.z <= 0) continue; // Hide back-facing lines
-
-          // Connect to next longitude neighbor
-          const nextLonIndex = (j + 1) % numLong;
-          const idxLon = i * numLong + nextLonIndex;
-          const pLonNeighbor = projected[idxLon];
-          if (pLonNeighbor && pLonNeighbor.z > 0) {
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(pLonNeighbor.x, pLonNeighbor.y);
-          }
-
-          // Connect to next latitude neighbor
-          if (i < numLat - 1) {
-            const idxLat = (i + 1) * numLong + j;
-            const pLatNeighbor = projected[idxLat];
-            if (pLatNeighbor && pLatNeighbor.z > 0) {
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(pLatNeighbor.x, pLatNeighbor.y);
-            }
-          }
-        }
-      }
-      ctx.stroke();
-
-      // 2. Draw Wireframe Particle Node Points
-      projected.forEach((p) => {
-        if (p.z <= 0) return; // Hide back-facing particles
-
-        const size = (1.0 + p.z * 1.5); // Scale particle based on 3D depth
-        const opacity = p.z * 0.45;
-
-        // Draw glowing particle nodes
-        ctx.fillStyle = `rgba(34, 211, 238, ${opacity})`; // Cyan highlight dots
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Outer ambient glow ring for selected coordinates
-        if (p.latIndex % 3 === 0 && p.lonIndex % 4 === 0) {
-          ctx.fillStyle = `rgba(139, 92, 246, ${opacity * 0.25})`;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, size * 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   // Utility to push customized animated toast notifications
   const triggerToast = (message, type = "success") => {
@@ -288,15 +148,9 @@ function App() {
   return (
     <div className="relative min-h-screen bg-[#07080d] text-[#e2e8f0] flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden selection:bg-violet-600 selection:text-white font-sans">
       
-      {/* Dynamic 3D Rotating Background Globe Canvas */}
-      <canvas 
-        ref={canvasRef} 
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.22] sm:opacity-[0.28] z-0" 
-      />
-
-      {/* 3D Tech Grid Mesh Layer */}
+      {/* 3D Tech Grid Mesh Layer with scrolling CSS hardware-acceleration */}
       <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
+        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 animate-mesh-scroll"
         style={{
           backgroundImage: `
             linear-gradient(to right, #ffffff 1px, transparent 1px),
@@ -306,10 +160,10 @@ function App() {
         }}
       />
 
-      {/* Heavy Premium Background Gradient Glares */}
+      {/* Heavy Premium Background Gradient Glares with slow GPU-accelerated pulses */}
       <div className="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] bg-[#581c87]/15 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse duration-[8000ms]" />
       <div className="absolute bottom-[-15%] right-[-15%] w-[60%] h-[60%] bg-[#1e1b4b]/25 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse duration-[10000ms]" />
-      <div className="absolute top-[35%] right-[20%] w-[35%] h-[35%] bg-[#0369a1]/8 rounded-full blur-[110px] pointer-events-none z-0" />
+      <div className="absolute top-[35%] right-[20%] w-[35%] h-[35%] bg-[#0369a1]/8 rounded-full blur-[110px] pointer-events-none z-0 animate-pulse duration-[12000ms]" />
 
       {/* Floating Sparkles effect */}
       <div className="absolute inset-0 bg-[radial-gradient(#ffffff02_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none z-0" />
@@ -709,6 +563,10 @@ function App() {
             from { opacity: 0; transform: scale(0.94); }
             to { opacity: 1; transform: scale(1); }
           }
+          @keyframes mesh-scroll {
+            from { background-position: 0 0; }
+            to { background-position: 28px 28px; }
+          }
           .animate-slide-in {
             animation: slide-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
@@ -717,6 +575,9 @@ function App() {
           }
           .animate-scale-up {
             animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          }
+          .animate-mesh-scroll {
+            animation: mesh-scroll 12s linear infinite;
           }
         `}</style>
 
