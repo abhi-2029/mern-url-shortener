@@ -43,7 +43,8 @@ function App() {
       triggerToast("Please enter a URL to shorten", "error");
       return false;
     }
-    const pattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
+    // Secure, non-nested regex to completely avoid Catastrophic Backtracking (ReDoS) locks
+    const pattern = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,12})(\/.*)?$/i;
     if (!pattern.test(input.trim())) {
       triggerToast("Please enter a valid web URL address", "error");
       return false;
