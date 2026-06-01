@@ -49,8 +49,8 @@ function App() {
 
     // Generate sphere vertices (3D Points)
     const points = [];
-    const numLat = 15;  // Latitudes
-    const numLong = 22; // Longitudes
+    const numLat = 12;  // Latitudes (reduced from 15 for lightweight rendering)
+    const numLong = 18; // Longitudes (reduced from 22 for lightweight rendering)
     
     for (let i = 0; i < numLat; i++) {
       const lat = (i / (numLat - 1)) * Math.PI - Math.PI / 2;
@@ -101,8 +101,10 @@ function App() {
         };
       });
 
-      // 1. Draw Mesh Connection Lines (Only on the front half: Z > 0)
-      ctx.lineWidth = 0.65;
+      // 1. Draw Mesh Connection Lines (Highly optimized single-stroke path)
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
+      ctx.beginPath();
       
       for (let i = 0; i < numLat; i++) {
         for (let j = 0; j < numLong; j++) {
@@ -110,41 +112,34 @@ function App() {
           const p1 = projected[idx];
           if (!p1 || p1.z <= 0) continue; // Hide back-facing lines
 
-          // Set line opacity based on depth
-          const opacity = p1.z * 0.12;
-          ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
-
-          // Connect to next longitude neighbor (O(1) lookups)
+          // Connect to next longitude neighbor
           const nextLonIndex = (j + 1) % numLong;
           const idxLon = i * numLong + nextLonIndex;
           const pLonNeighbor = projected[idxLon];
           if (pLonNeighbor && pLonNeighbor.z > 0) {
-            ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(pLonNeighbor.x, pLonNeighbor.y);
-            ctx.stroke();
           }
 
-          // Connect to next latitude neighbor (O(1) lookups)
+          // Connect to next latitude neighbor
           if (i < numLat - 1) {
             const idxLat = (i + 1) * numLong + j;
             const pLatNeighbor = projected[idxLat];
             if (pLatNeighbor && pLatNeighbor.z > 0) {
-              ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(pLatNeighbor.x, pLatNeighbor.y);
-              ctx.stroke();
             }
           }
         }
       }
+      ctx.stroke();
 
       // 2. Draw Wireframe Particle Node Points
       projected.forEach((p) => {
         if (p.z <= 0) return; // Hide back-facing particles
 
-        const size = (1.2 + p.z * 1.8); // Scale particle based on 3D depth
-        const opacity = p.z * 0.5;
+        const size = (1.0 + p.z * 1.5); // Scale particle based on 3D depth
+        const opacity = p.z * 0.45;
 
         // Draw glowing particle nodes
         ctx.fillStyle = `rgba(34, 211, 238, ${opacity})`; // Cyan highlight dots
@@ -154,7 +149,7 @@ function App() {
 
         // Outer ambient glow ring for selected coordinates
         if (p.latIndex % 3 === 0 && p.lonIndex % 4 === 0) {
-          ctx.fillStyle = `rgba(139, 92, 246, ${opacity * 0.35})`;
+          ctx.fillStyle = `rgba(139, 92, 246, ${opacity * 0.25})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, size * 2.5, 0, Math.PI * 2);
           ctx.fill();
