@@ -12,11 +12,12 @@ function App() {
   const [qrImage, setQrImage] = useState("");
   const [toasts, setToasts] = useState([]);
   
-  // Local storage history of shortened URLs
+  // Local storage history of shortened URLs with strict array validation
   const [history, setHistory] = useState(() => {
     try {
       const saved = localStorage.getItem("url_shortener_history");
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.error("Failed to load history from localStorage", e);
       return [];
@@ -148,9 +149,9 @@ function App() {
   return (
     <div className="relative min-h-screen bg-[#07080d] text-[#e2e8f0] flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden selection:bg-violet-600 selection:text-white font-sans">
       
-      {/* 3D Tech Grid Mesh Layer with scrolling CSS hardware-acceleration */}
+      {/* 3D Tech Grid Mesh Layer - Static to prevent browser repaint load */}
       <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 animate-mesh-scroll"
+        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
         style={{
           backgroundImage: `
             linear-gradient(to right, #ffffff 1px, transparent 1px),
@@ -160,7 +161,7 @@ function App() {
         }}
       />
 
-      {/* Heavy Premium Background Gradient Glares with slow GPU-accelerated pulses */}
+      {/* Heavy Premium Background Gradient Glares with slow GPU-activated pulses */}
       <div className="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] bg-[#581c87]/15 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse duration-[8000ms]" />
       <div className="absolute bottom-[-15%] right-[-15%] w-[60%] h-[60%] bg-[#1e1b4b]/25 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse duration-[10000ms]" />
       <div className="absolute top-[35%] right-[20%] w-[35%] h-[35%] bg-[#0369a1]/8 rounded-full blur-[110px] pointer-events-none z-0 animate-pulse duration-[12000ms]" />
@@ -563,10 +564,6 @@ function App() {
             from { opacity: 0; transform: scale(0.94); }
             to { opacity: 1; transform: scale(1); }
           }
-          @keyframes mesh-scroll {
-            from { background-position: 0 0; }
-            to { background-position: 28px 28px; }
-          }
           .animate-slide-in {
             animation: slide-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
@@ -575,9 +572,6 @@ function App() {
           }
           .animate-scale-up {
             animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-          }
-          .animate-mesh-scroll {
-            animation: mesh-scroll 12s linear infinite;
           }
         `}</style>
 
