@@ -326,7 +326,7 @@ function App() {
               <div className="relative flex-1 group">
                 <input
                   type="text"
-                  placeholder="Paste your link here (e.g. github.com)"
+                  placeholder="Paste your long link here (e.g. https://example.com/deep/path/to/analytics/report?session=active&user=premium)"
                   className="w-full px-5 py-4.5 bg-[#121420] rounded-2xl border border-white/5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-violet-500/50 focus:ring-[4px] focus:ring-violet-500/10 transition-all duration-300 pr-10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] group-hover:border-white/10"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
