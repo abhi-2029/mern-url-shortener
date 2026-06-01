@@ -11,6 +11,22 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-url-shortener-0vyb.onrender.com",
+  "https://mern-url-shortener-0yyb.onrender.com",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+// CORS must be configured before any other middleware (especially rate limiters)
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
+
 // Security Headers
 app.use(helmet());
 
@@ -26,21 +42,6 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(limiter);
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://mern-url-shortener-0vyb.onrender.com",
-  "https://mern-url-shortener-0yyb.onrender.com",
-  process.env.FRONTEND_URL
-].filter(Boolean);
-
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
 
 app.use(express.json());
 
