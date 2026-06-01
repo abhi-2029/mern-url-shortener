@@ -12,8 +12,13 @@ router.post("/shorten", async (req, res) => {
       return res.status(400).json({ error: "URL is required" });
     }
 
+    let formattedUrl = originalUrl.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+
     try {
-      new URL(originalUrl);
+      new URL(formattedUrl);
     } catch {
       return res.status(400).json({ error: "Invalid URL" });
     }
@@ -28,10 +33,10 @@ router.post("/shorten", async (req, res) => {
 
     const url = await Url.create({
       shortId,
-      originalUrl,
+      originalUrl: formattedUrl,
     });
 
-    console.log("Created URL:", originalUrl);
+    console.log("Created URL:", formattedUrl);
 
     res.json({
       shortId: url.shortId,
@@ -39,6 +44,28 @@ router.post("/shorten", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/stats/:shortId", async (req, res) => {
+  try {
+    const { shortId } = req.params;
+
+    const url = await Url.findOne({ shortId });
+
+    if (!url) {
+      return res.status(404).json({ error: "URL not found" });
+    }
+
+    res.json({
+      shortId: url.shortId,
+      originalUrl: url.originalUrl,
+      clicks: url.clicks,
+      createdAt: url.createdAt,
+    });
+  } catch (error) {
+    console.log("Stats Error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
