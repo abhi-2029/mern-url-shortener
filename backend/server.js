@@ -29,6 +29,7 @@ app.use(limiter);
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://mern-url-shortener-0yyb.onrender.com",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
