@@ -86,6 +86,53 @@ npm run dev
 
 ---
 
+## 🐳 Running with Docker
+
+You can run the entire stack using Docker and Docker Compose. This maps your local directories into the containers so you still get live hot-reloading during development.
+
+### Prerequisites
+Make sure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed on your machine.
+
+### Quick Start (Development Mode)
+
+1. **Verify Environment Files**:
+   - `backend/.env` is read automatically by Docker Compose. If you want to connect to the local containerized MongoDB instead of Atlas, you can uncomment the `MONGO_URI` environment override under `backend` in [docker-compose.yml](file:///E:/URL_Shortener/docker-compose.yml).
+   - `frontend/.env` should contain:
+     ```env
+     VITE_BACKEND_URL=http://localhost:5000
+     ```
+
+2. **Launch the Container Stack**:
+   From the project root directory, run:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the Portals**:
+   - **Frontend Interface**: [http://localhost:5173](http://localhost:5173) (includes hot-reload enabled via folder polling)
+   - **Backend API Server**: [http://localhost:5000](http://localhost:5000)
+
+4. **Shutdown Containers**:
+   ```bash
+   docker-compose down
+   ```
+
+### Production Build
+
+To build and package production-optimized containers:
+
+1. **Backend Build**:
+   ```bash
+   docker build --target production -t sleek-shortener-backend ./backend
+   ```
+
+2. **Frontend Build** (served via Nginx, compiling the backend API endpoint at build time):
+   ```bash
+   docker build --target production --build-arg VITE_BACKEND_URL=http://localhost:5000 -t sleek-shortener-frontend ./frontend
+   ```
+
+---
+
 ## 🛡️ Production & Security Auditing
 
 ### Middleware Sequence Order Flow
