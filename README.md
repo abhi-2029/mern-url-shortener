@@ -135,6 +135,51 @@ To build and package production-optimized containers:
 
 ---
 
+## ☸️ Running with Kubernetes
+
+You can orchestrate and run this application in a Kubernetes cluster (e.g., Minikube, Kind, or Docker Desktop Kubernetes) using the manifests in the [k8s/](file:///E:/URL_Shortener/k8s) folder.
+
+### 1. Build and Tag Images
+Before deploying, build the production Docker images so the cluster can load them:
+```bash
+# Build the Backend
+docker build --target production -t sleek-shortener-backend:latest ./backend
+
+# Build the Frontend (Ensure VITE_BACKEND_URL points to the NodePort mapping: http://localhost:30500)
+docker build --target production --build-arg VITE_BACKEND_URL=http://localhost:30500 -t sleek-shortener-frontend:latest ./frontend
+```
+
+> [!TIP]
+> If you are using Minikube, run `eval $(minikube -p minikube docker-env)` in your shell before building the images so Minikube can load them locally without pushing to a registry.
+
+### 2. Deploy Manifests
+Deploy the MongoDB database (with Persistent Volume), the API backend, and the React frontend:
+```bash
+kubectl apply -f k8s/
+```
+
+### 3. Verify Deployed Resources
+Check that all Pods are running successfully and the services are active:
+```bash
+kubectl get all
+```
+
+### 4. Access the Application
+The manifests expose services using NodePorts:
+- **Frontend Portal**: [http://localhost:30080](http://localhost:30080)
+- **Backend API**: [http://localhost:30500](http://localhost:30500)
+
+> [!NOTE]
+> If running on Minikube, use the command `minikube service frontend-service` and `minikube service backend-service` to open them directly, as port-binding routes can differ.
+
+### 5. Cleaning Up
+To delete all configurations, volumes, and workloads from your cluster:
+```bash
+kubectl delete -f k8s/
+```
+
+---
+
 ## 🛡️ Production & Security Auditing
 
 ### Middleware Sequence Order Flow
