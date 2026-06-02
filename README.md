@@ -1,4 +1,4 @@
-# ⚡ Sleek Shortener (MERN + Tailwind CSS v4 + daisyUI v5)
+# ⚡ Sleek Shortener (MERN + Tailwind CSS v4 + daisyUI v5 + Docker)
 
 An elite, high-performance, and aesthetics-driven **MERN URL Shortener** equipped with real-time analytics, secure QR code generation, and robust server-side security. Built using modern web standards (ES Modules, hardware-composited animations, and strict rate-limiting architectures).
 
@@ -14,6 +14,7 @@ Live Link: [Sleek Shortener Live Site](https://mern-url-shortener-0vyb.onrender.
 * **🔒 CORS & Rate Limiter Security**: Properly configured express middleware sequence (CORS applied *before* the rate limiter) to eliminate preflight OPTIONS blocks and allow clients to handle HTTP `429 Too Many Requests` natively.
 * **🔳 Customized QR Codes**: Generates high-definition, customizable QR codes instantly on link generation with native browser download triggers.
 * **💾 Local Storage Dashboard**: Keeps track of your last 6 shortened URLs inside a cached state, safeguarded with strict, non-looping array parsing.
+* **🐳 Containerized Dev/Prod Stacks**: Unified local environment setup via multi-stage Dockerfiles and `docker-compose.yml`, featuring persistent database storage volumes and hot-reloading.
 
 ---
 
@@ -23,7 +24,8 @@ Live Link: [Sleek Shortener Live Site](https://mern-url-shortener-0vyb.onrender.
 | :--- | :--- |
 | **Frontend** | React, Vite, Tailwind CSS v4, daisyUI v5, Axios, QRCode.js |
 | **Backend** | Node.js (ESM), Express, Mongoose, CORS, Helmet, Morgan, Express Rate Limit |
-| **Database** | MongoDB Atlas (Cloud Cluster) |
+| **Containers** | Docker, Docker Compose (Multi-stage development/production workflows) |
+| **Database** | MongoDB Atlas (Cloud Cluster) or local MongoDB (Containerized) |
 | **Deployment** | Render Cloud Platform (Frontend Static, Web Service Backend API) |
 
 ---
